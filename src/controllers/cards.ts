@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
+import { Types } from 'mongoose';
 import { STATUS_CODE } from '../constants';
 import CardModel from '../models/card';
 
@@ -6,6 +7,7 @@ export const create = async (req: Request, res: Response, next: NextFunction) =>
   try {
     const { name, link } = req.body;
     const owner = req.user;
+
     const newCard = await CardModel.create({ name, link, owner });
 
     if (!newCard) {
@@ -52,8 +54,15 @@ export const getById = async (req: Request, res: Response, next: NextFunction) =
 
 export const like = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const cardId = req.params.id;
+    if (!cardId || !Types.ObjectId.isValid(cardId)) {
+      return res
+        .status(STATUS_CODE['bad-request'])
+        .json({ message: 'Переданы некорректные данные для постановки лайка.' });
+    }
+
     const updateCard = await CardModel.findByIdAndUpdate(
-      req.params.id,
+      cardId,
       { $addToSet: { likes: req.user._id } },
       { new: true },
     );
@@ -70,8 +79,15 @@ export const like = async (req: Request, res: Response, next: NextFunction) => {
 
 export const dislike = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const cardId = req.params.id;
+    if (!cardId || !Types.ObjectId.isValid(cardId)) {
+      return res
+        .status(STATUS_CODE['bad-request'])
+        .json({ message: 'Переданы некорректные данные для удаление лайка.' });
+    }
+
     const updateCard = await CardModel.findByIdAndUpdate(
-      req.params.id,
+      cardId,
       { $pull: { likes: req.user._id } },
       { new: true },
     );

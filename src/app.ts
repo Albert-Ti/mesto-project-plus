@@ -4,7 +4,7 @@ import mongoose from 'mongoose';
 import routerUsers from './routes/users';
 import routerCards from './routes/cards';
 import errorHandler from './middlewares/error-handler';
-import userTypeToRequest from './middlewares/user-type-to-response';
+import userTypeToRequest from './middlewares/user-type-to-request';
 
 const { PORT = 3000, MONGODB_URL = '' } = process.env;
 
