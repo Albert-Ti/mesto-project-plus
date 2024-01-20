@@ -1,15 +1,15 @@
-import { Schema, model, Types } from 'mongoose';
-import { User } from './types';
+import { Schema, model } from 'mongoose';
+import { SCHEMA_NAMES } from '../constants';
 
 type Card = {
   name: string;
   link: string;
-  owner: Types.ObjectId | User;
-  likes: Types.ObjectId[] | User[];
+  owner: Schema.Types.ObjectId;
+  likes: Schema.Types.ObjectId[];
   createdAt: Date;
 };
 
-const cardScheme = new Schema<Card>(
+const cardSchema = new Schema<Card>(
   {
     name: {
       type: String,
@@ -22,12 +22,12 @@ const cardScheme = new Schema<Card>(
       required: true,
     },
     owner: {
-      type: Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: 'User',
       required: true,
     },
     likes: {
-      type: [{ type: Types.ObjectId, ref: 'User' }],
+      type: [{ type: Schema.Types.ObjectId, ref: 'User' }],
       default: [],
     },
     createdAt: {
@@ -38,4 +38,4 @@ const cardScheme = new Schema<Card>(
   { versionKey: false },
 );
 
-export default model<Card>('Card', cardScheme);
+export default model<Card>(SCHEMA_NAMES.card, cardSchema);

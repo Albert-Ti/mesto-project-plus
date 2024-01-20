@@ -1,24 +1,26 @@
 import 'dotenv/config';
 import express from 'express';
 import mongoose from 'mongoose';
-import routerUsers from './routes/users';
-import routerCards from './routes/cards';
-import errorHandler from './middlewares/error-handler';
-import userTypeToRequest from './middlewares/user-type-to-request';
+import handleServerError from './middlewares/handle-server-error';
+import handleNotFoundPage from './middlewares/handle-not-found-page';
+import setUserTypeInRequest from './middlewares/set-user-type-in-request';
+import cardsRouter from './routes/cards';
+import userRouter from './routes/users';
 
 const { PORT = 3000, MONGODB_URL = '' } = process.env;
 
 const app = express();
 
 app.use(express.json());
-app.use(userTypeToRequest);
+app.use(setUserTypeInRequest);
 
-app.use('/', routerUsers);
-app.use('/', routerCards);
+app.use('/', userRouter);
+app.use('/', cardsRouter);
 
-app.use(errorHandler);
+app.use(handleNotFoundPage);
+app.use(handleServerError);
 
-const connect = async () => {
+const connectToMongoDB = async () => {
   await mongoose
     .connect(MONGODB_URL)
     .then(() => console.log('Mongodb подключен'))
@@ -27,4 +29,4 @@ const connect = async () => {
   app.listen(PORT, () => console.log(`Сервер запушен: http://localhost:${PORT}`));
 };
 
-connect();
+connectToMongoDB();
