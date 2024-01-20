@@ -1,7 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
-import { Types } from 'mongoose';
+import { MongooseError } from 'mongoose';
 import { STATUS_CODE } from '../constants';
 import CardModel from '../models/card';
+import * as helpers from './helpers';
 
 export const create = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -10,14 +11,14 @@ export const create = async (req: Request, res: Response, next: NextFunction) =>
 
     const newCard = await CardModel.create({ name, link, owner });
 
-    if (!newCard) {
-      return res
-        .status(STATUS_CODE['bad-request'])
-        .json({ message: 'Не удалось создать карточку' });
-    }
-
     return res.status(STATUS_CODE.created).json(newCard);
   } catch (error) {
+    if ((error as MongooseError).name === 'ValidationError') {
+      return helpers.handleValidationError(
+        res,
+        'Переданы некорректные данные при создании карточки',
+      );
+    }
     return next(error);
   }
 };
@@ -25,12 +26,6 @@ export const create = async (req: Request, res: Response, next: NextFunction) =>
 export const getAll = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const cards = await CardModel.find({});
-
-    if (cards.length === 0) {
-      return res
-        .status(STATUS_CODE['not-found'])
-        .json({ message: 'Нет доступных карточек, попробуйте создать' });
-    }
 
     return res.status(STATUS_CODE.ok).json(cards);
   } catch (error) {
@@ -40,64 +35,60 @@ export const getAll = async (req: Request, res: Response, next: NextFunction) =>
 
 export const getById = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const cardById = await CardModel.findById({ _id: req.params.id });
-
-    if (!cardById) {
-      return res.status(STATUS_CODE['not-found']).json({ message: 'Карточка не найдена' });
-    }
+    const cardById = await CardModel.findById(req.params.id).orFail();
 
     return res.status(STATUS_CODE.ok).json(cardById);
   } catch (error) {
+    if ((error as MongooseError).name === 'DocumentNotFoundError') {
+      return helpers.handleCardNotFound(res);
+    }
+
+    if ((error as MongooseError).name === 'CastError') {
+      return helpers.handleCastError(res);
+    }
+
     return next(error);
   }
 };
 
 export const like = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const cardId = req.params.id;
-    if (!cardId || !Types.ObjectId.isValid(cardId)) {
-      return res
-        .status(STATUS_CODE['bad-request'])
-        .json({ message: 'Переданы некорректные данные для постановки лайка.' });
-    }
-
-    const updateCard = await CardModel.findByIdAndUpdate(
-      cardId,
+    const updatedCard = await CardModel.findByIdAndUpdate(
+      req.params.id,
       { $addToSet: { likes: req.user._id } },
-      { new: true },
-    );
+      { new: true, runValidators: true },
+    ).orFail();
 
-    if (!updateCard) {
-      return res.status(STATUS_CODE['not-found']).json({ message: 'Карточка не найдена' });
+    return res.status(STATUS_CODE.ok).json(updatedCard);
+  } catch (error) {
+    if ((error as MongooseError).name === 'DocumentNotFoundError') {
+      return helpers.handleCardNotFound(res);
     }
 
-    return res.status(STATUS_CODE.ok).json(updateCard);
-  } catch (error) {
+    if ((error as MongooseError).name === 'CastError') {
+      helpers.handleCastError(res);
+    }
     return next(error);
   }
 };
 
 export const dislike = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const cardId = req.params.id;
-    if (!cardId || !Types.ObjectId.isValid(cardId)) {
-      return res
-        .status(STATUS_CODE['bad-request'])
-        .json({ message: 'Переданы некорректные данные для удаление лайка.' });
-    }
-
-    const updateCard = await CardModel.findByIdAndUpdate(
-      cardId,
+    const updatedCard = await CardModel.findByIdAndUpdate(
+      req.params.id,
       { $pull: { likes: req.user._id } },
       { new: true },
-    );
+    ).orFail();
 
-    if (!updateCard) {
-      return res.status(STATUS_CODE['not-found']).json({ message: 'Карточка не найдена' });
+    return res.status(STATUS_CODE.ok).json(updatedCard);
+  } catch (error) {
+    if ((error as MongooseError).name === 'DocumentNotFoundError') {
+      return helpers.handleCardNotFound(res);
     }
 
-    return res.status(STATUS_CODE.ok).json(updateCard);
-  } catch (error) {
+    if ((error as MongooseError).name === 'CastError') {
+      return helpers.handleCastError(res);
+    }
     return next(error);
   }
 };
