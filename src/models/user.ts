@@ -5,27 +5,44 @@ type User = {
   name: string;
   about: string;
   avatar: string;
+  email: string;
+  password: string;
 };
 
 const userSchema = new Schema<User>(
   {
     name: {
       type: String,
-      required: true,
       maxlength: 30,
       minlength: 2,
+      default: 'Жак-Ив Кусто',
     },
     about: {
       type: String,
-      required: true,
       maxlength: 200,
       minlength: 2,
+      default: 'Исследователь',
     },
     avatar: {
       type: String,
+      default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
+    },
+    email: {
+      type: String,
       required: true,
+      unique: true,
+      validate: {
+        validator: (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v),
+        message: 'Некорректный формат почты: {VALUE}',
+      },
+    },
+    password: {
+      type: String,
+      required: true,
+      select: false,
     },
   },
+
   { versionKey: false },
 );
 

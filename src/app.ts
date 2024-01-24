@@ -1,21 +1,26 @@
+import cookieParser from 'cookie-parser';
 import 'dotenv/config';
 import express from 'express';
 import mongoose from 'mongoose';
-import handleServerError from './middlewares/handle-server-error';
+import { login, register } from './controllers/users';
+import auth from './middlewares/auth';
 import handleNotFoundPage from './middlewares/handle-not-found-page';
-import setUserTypeInRequest from './middlewares/set-user-type-in-request';
+import handleServerError from './middlewares/handle-server-error';
 import cardsRouter from './routes/cards';
 import userRouter from './routes/users';
 
-const { PORT = 3000, MONGODB_URL = '' } = process.env;
+const { PORT = 3000, MONGODB_URL = 'mongodb://127.0.0.1:27017/mestodb' } = process.env;
 
 const app = express();
 
 app.use(express.json());
-app.use(setUserTypeInRequest);
+app.use(cookieParser());
 
-app.use('/', userRouter);
-app.use('/', cardsRouter);
+app.post('/signup', register);
+app.post('/signin', login);
+
+app.use('/', auth, userRouter);
+app.use('/', auth, cardsRouter);
 
 app.use(handleNotFoundPage);
 app.use(handleServerError);

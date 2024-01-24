@@ -9,5 +9,6 @@ router.get('/cards/:id', card.getById);
 
 router.put('/cards/:id/likes', card.like);
 router.delete('/cards/:id/likes', card.dislike);
+router.delete('/cards/:id', card.remove);
 
 export default router;
