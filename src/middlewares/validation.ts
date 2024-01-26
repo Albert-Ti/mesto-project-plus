@@ -30,8 +30,15 @@ const cards = {
   }),
 };
 
+const ID = {
+  [Segments.PARAMS]: Joi.object().keys({
+    id: Joi.string().alphanum().length(24).required(),
+  }),
+};
+
 export default {
   authUser,
   updateUser,
   cards,
+  ID,
 };

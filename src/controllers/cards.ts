@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { MongooseError } from 'mongoose';
 import { STATUS_CODES } from '../constants';
 import CardModel from '../models/card';
+import * as errors from '../errors';
 
 export const create = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -13,9 +14,9 @@ export const create = async (req: Request, res: Response, next: NextFunction) =>
     return res.status(STATUS_CODES.created).json(newCard);
   } catch (error) {
     if ((error as MongooseError).name === 'ValidationError') {
-      return res
-        .status(STATUS_CODES.badRequest)
-        .json({ message: 'Переданы некорректные данные при создании карточки' });
+      return next(
+        new errors.BadRequestError('Переданы некорректные данные при создании карточки.'),
+      );
     }
     return next(error);
   }
@@ -38,13 +39,11 @@ export const getById = async (req: Request, res: Response, next: NextFunction) =
     return res.status(STATUS_CODES.ok).json(cardById);
   } catch (error) {
     if ((error as MongooseError).name === 'DocumentNotFoundError') {
-      return res
-        .status(STATUS_CODES.notFound)
-        .json({ message: 'Карточка по указанному _id не найдена.' });
+      return next(new errors.NotFoundError('Карточка по указанному ID не найдена.'));
     }
 
     if ((error as MongooseError).name === 'CastError') {
-      return res.status(STATUS_CODES.badRequest).json({ message: 'Передан не валидный _id' });
+      return next(new errors.BadRequestError('Передан не валидный ID.'));
     }
 
     return next(error);
@@ -62,13 +61,11 @@ export const like = async (req: Request, res: Response, next: NextFunction) => {
     return res.status(STATUS_CODES.ok).json(updatedCard);
   } catch (error) {
     if ((error as MongooseError).name === 'DocumentNotFoundError') {
-      return res
-        .status(STATUS_CODES.notFound)
-        .json({ message: 'Карточка по указанному _id не найдена.' });
+      return next(new errors.NotFoundError('Карточка по указанному ID не найдена.'));
     }
 
     if ((error as MongooseError).name === 'CastError') {
-      return res.status(STATUS_CODES.badRequest).json({ message: 'Передан не валидный _id' });
+      return next(new errors.BadRequestError('Передан не валидный ID.'));
     }
     return next(error);
   }
@@ -85,13 +82,11 @@ export const dislike = async (req: Request, res: Response, next: NextFunction) =
     return res.status(STATUS_CODES.ok).json(updatedCard);
   } catch (error) {
     if ((error as MongooseError).name === 'DocumentNotFoundError') {
-      return res
-        .status(STATUS_CODES.notFound)
-        .json({ message: 'Карточка по указанному _id не найдена.' });
+      return next(new errors.NotFoundError('Карточка по указанному ID не найдена.'));
     }
 
     if ((error as MongooseError).name === 'CastError') {
-      return res.status(STATUS_CODES.badRequest).json({ message: 'Передан не валидный _id' });
+      return next(new errors.BadRequestError('Передан не валидный ID.'));
     }
     return next(error);
   }
@@ -102,7 +97,7 @@ export const remove = async (req: Request, res: Response, next: NextFunction) =>
     const cardToRemove = await CardModel.findById(req.params.id).orFail();
 
     if (cardToRemove.owner.toString() !== req.user._id.toString()) {
-      return res.status(STATUS_CODES.notFound).json({ message: 'У вас нет доступа' });
+      return next(new errors.ForbiddenError('У вас нет доступа.'));
     }
 
     await cardToRemove.deleteOne();
@@ -110,9 +105,7 @@ export const remove = async (req: Request, res: Response, next: NextFunction) =>
     return res.status(STATUS_CODES.ok).json({ message: 'Карточка успешно удалена' });
   } catch (error) {
     if ((error as MongooseError).name === 'DocumentNotFoundError') {
-      return res
-        .status(STATUS_CODES.notFound)
-        .json({ message: 'Карточка по указанному _id не найдена.' });
+      return next(new errors.NotFoundError('Карточка по указанному ID не найдена.'));
     }
     return next(error);
   }

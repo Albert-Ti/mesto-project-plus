@@ -20,7 +20,7 @@ const requestLog = expressWinston.logger({
   format: winston.format.combine(winston.format.colorize(), winston.format.json()),
 });
 
-const errorLog = expressWinston.logger({
+const errorLog = expressWinston.errorLogger({
   transports: [transportError],
   format: winston.format.combine(winston.format.colorize(), winston.format.json()),
 });
