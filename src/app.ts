@@ -5,7 +5,8 @@ import express from 'express';
 import helmet from 'helmet';
 import mongoose from 'mongoose';
 import { login, register } from './controllers/users';
-import { auth, logger, validation, centralErrorHandler, handleNotFoundPage } from './middlewares';
+import { auth, centralErrorHandler, logger, validation } from './middlewares';
+import handleNotFoundRoute from './routes/handle-not-found-route';
 import cardsRouter from './routes/cards';
 import userRouter from './routes/users';
 
@@ -25,8 +26,7 @@ app.post('/signin', celebrate(validation.authUser), login);
 app.use(auth);
 app.use('/', userRouter);
 app.use('/', cardsRouter);
-
-app.use(handleNotFoundPage);
+app.use('*', handleNotFoundRoute);
 
 app.use(logger.errorLog);
 
