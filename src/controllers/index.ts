@@ -1,2 +1,2 @@
-export * as user from './users';
-export * as card from './cards';
+export * as users from './users';
+export * as cards from './cards';
