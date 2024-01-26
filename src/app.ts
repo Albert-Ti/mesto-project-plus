@@ -1,11 +1,11 @@
+import { celebrate, errors } from 'celebrate';
 import cookieParser from 'cookie-parser';
 import 'dotenv/config';
 import express from 'express';
 import mongoose from 'mongoose';
 import { login, register } from './controllers/users';
-import auth from './middlewares/auth';
-import handleNotFoundPage from './middlewares/handle-not-found-page';
-import handleServerError from './middlewares/handle-server-error';
+import { auth, logger, validation } from './middlewares';
+import * as customErrors from './middlewares/custom-errors';
 import cardsRouter from './routes/cards';
 import userRouter from './routes/users';
 
@@ -16,14 +16,20 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 
-app.post('/signup', register);
-app.post('/signin', login);
+app.use(logger.requestLog);
+
+app.post('/signup', celebrate(validation.authUser), register);
+app.post('/signin', celebrate(validation.authUser), login);
 
 app.use('/', auth, userRouter);
 app.use('/', auth, cardsRouter);
 
-app.use(handleNotFoundPage);
-app.use(handleServerError);
+app.use(logger.errorLog);
+
+app.use(errors());
+
+app.use(customErrors.handleNotFoundPage);
+app.use(customErrors.handleServerError);
 
 const connectToMongoDB = async () => {
   await mongoose

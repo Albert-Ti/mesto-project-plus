@@ -1,5 +1,3 @@
-/* eslint-disable no-shadow */
-/* eslint-disable no-unused-vars */
 import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { STATUS_CODES } from '../constants';

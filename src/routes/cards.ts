@@ -1,9 +1,11 @@
+import { celebrate } from 'celebrate';
 import { Router } from 'express';
 import { card } from '../controllers';
+import { validation } from '../middlewares';
 
 const router = Router();
 
-router.post('/cards', card.create);
+router.post('/cards', celebrate(validation.cards), card.create);
 router.get('/cards', card.getAll);
 router.get('/cards/:id', card.getById);
 

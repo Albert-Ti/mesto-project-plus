@@ -1,4 +1,5 @@
 import { Schema, model } from 'mongoose';
+import { isEmail, isURL } from 'validator';
 import { SCHEMA_NAMES } from '../constants';
 
 type User = {
@@ -26,13 +27,17 @@ const userSchema = new Schema<User>(
     avatar: {
       type: String,
       default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
+      validate: {
+        validator: (v: string) => isURL(v),
+        message: 'Некорректный формат ссылки: {VALUE}',
+      },
     },
     email: {
       type: String,
       required: true,
       unique: true,
       validate: {
-        validator: (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v),
+        validator: (v: string) => isEmail(v),
         message: 'Некорректный формат почты: {VALUE}',
       },
     },
@@ -42,7 +47,6 @@ const userSchema = new Schema<User>(
       select: false,
     },
   },
-
   { versionKey: false },
 );
 

@@ -1,4 +1,5 @@
 import { Schema, model } from 'mongoose';
+import { isURL } from 'validator';
 import { SCHEMA_NAMES } from '../constants';
 
 type Card = {
@@ -20,6 +21,10 @@ const cardSchema = new Schema<Card>(
     link: {
       type: String,
       required: true,
+      validate: {
+        validator: (v: string) => isURL(v),
+        message: 'Некорректный формат ссылки: {VALUE}',
+      },
     },
     owner: {
       type: Schema.Types.ObjectId,

@@ -22,7 +22,9 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
 
     if ((error as MongooseError).name === 'ValidationError') {
       return res.status(STATUS_CODES.badRequest).json({
-        message: 'Переданы некорректные данные при создании пользователя.',
+        message:
+          (error as MongooseError).message ||
+          'Переданы некорректные данные при создании пользователя.',
       });
     }
     return next(error);
