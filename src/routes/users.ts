@@ -8,7 +8,7 @@ const router = Router();
 router.get('/users/me', user.getMe);
 
 router.get('/users', user.getAll);
-router.get('/users/:id', user.getById);
+router.get('/users/:id', celebrate(validation.ID), user.getById);
 
 router.patch('/users/me', celebrate(validation.updateUser), user.updateProfile);
 router.patch('/users/me/avatar', celebrate(validation.updateUser), user.updateAvatar);

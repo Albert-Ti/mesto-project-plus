@@ -7,10 +7,10 @@ const router = Router();
 
 router.post('/cards', celebrate(validation.cards), card.create);
 router.get('/cards', card.getAll);
-router.get('/cards/:id', card.getById);
+router.get('/cards/:id', celebrate(validation.ID), card.getById);
 
-router.put('/cards/:id/likes', card.like);
-router.delete('/cards/:id/likes', card.dislike);
-router.delete('/cards/:id', card.remove);
+router.put('/cards/:id/likes', celebrate(validation.ID), card.like);
+router.delete('/cards/:id/likes', celebrate(validation.ID), card.dislike);
+router.delete('/cards/:id', celebrate(validation.ID), card.remove);
 
 export default router;
