@@ -1,24 +1,35 @@
+import { celebrate, errors } from 'celebrate';
+import cookieParser from 'cookie-parser';
 import 'dotenv/config';
 import express from 'express';
 import mongoose from 'mongoose';
-import handleServerError from './middlewares/handle-server-error';
-import handleNotFoundPage from './middlewares/handle-not-found-page';
-import setUserTypeInRequest from './middlewares/set-user-type-in-request';
+import { login, register } from './controllers/users';
+import { auth, logger, validation } from './middlewares';
+import * as customErrors from './middlewares/custom-errors';
 import cardsRouter from './routes/cards';
 import userRouter from './routes/users';
 
-const { PORT = 3000, MONGODB_URL = '' } = process.env;
+const { PORT = 3000, MONGODB_URL = 'mongodb://127.0.0.1:27017/mestodb' } = process.env;
 
 const app = express();
 
 app.use(express.json());
-app.use(setUserTypeInRequest);
+app.use(cookieParser());
 
-app.use('/', userRouter);
-app.use('/', cardsRouter);
+app.use(logger.requestLog);
 
-app.use(handleNotFoundPage);
-app.use(handleServerError);
+app.post('/signup', celebrate(validation.authUser), register);
+app.post('/signin', celebrate(validation.authUser), login);
+
+app.use('/', auth, userRouter);
+app.use('/', auth, cardsRouter);
+
+app.use(logger.errorLog);
+
+app.use(errors());
+
+app.use(customErrors.handleNotFoundPage);
+app.use(customErrors.handleServerError);
 
 const connectToMongoDB = async () => {
   await mongoose
