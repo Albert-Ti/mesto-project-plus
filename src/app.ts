@@ -8,7 +8,7 @@ import { login, register } from './controllers/users';
 import { auth, centralErrorHandler, logger, validation } from './middlewares';
 import handleNotFoundRoute from './routes/handle-not-found-route';
 import cardsRouter from './routes/cards';
-import userRouter from './routes/users';
+import usersRouter from './routes/users';
 
 const { PORT = 3000, MONGODB_URL = 'mongodb://127.0.0.1:27017/mestodb' } = process.env;
 
@@ -24,7 +24,7 @@ app.post('/signup', celebrate(validation.authUser), register);
 app.post('/signin', celebrate(validation.authUser), login);
 
 app.use(auth);
-app.use('/', userRouter);
+app.use('/', usersRouter);
 app.use('/', cardsRouter);
 app.use('*', handleNotFoundRoute);
 
@@ -37,10 +37,10 @@ app.use(centralErrorHandler);
 const connect = async () => {
   await mongoose
     .connect(MONGODB_URL)
-    .then(() => console.log('Mongodb подключен'))
-    .catch(() => console.error('Ошибка подключения к Mongodb'));
+    .then(() => console.log('База данных подключена.'))
+    .catch(() => console.error('Ошибка подключения к Базе данных.'));
 
-  app.listen(PORT, () => console.log(`Сервер запушен: http://localhost:${PORT}`));
+  app.listen(PORT, () => console.log(`Сервер запушен: http://localhost:${PORT}.`));
 };
 
 connect();
